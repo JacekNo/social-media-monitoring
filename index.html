@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEB Gdańsk - Bezpieczny Podgląd</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5; /* Tło Facebookowe */
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1c1e21;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dwie kolumny */
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Na mniejszych ekranach zrób jedną kolumnę */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #003399; /* TEB Blue */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Stylizacja ramki IFRAME */
+        iframe {
+            border: none;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .status-panel {
+            margin-top: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        button.status-btn {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        button.status-btn:hover { background-color: #f0f0f0; }
+        
+        /* Aktywne stany przycisków */
+        .selected-ok { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
+        .selected-alert { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+
+        .report-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 50px;
+            background-color: #003399;
+            color: white;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .report-btn:hover { background-color: #002266; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Monitoring Social Media - Gdańsk</h1>
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <div class="card">
+            <h2>TEB Edukacja</h2>
+            <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FTEBEdukacjaGdansk&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId" 
+                    width="100%" 
+                    height="600" 
+                    scrolling="no" 
+                    frameborder="0" 
+                    allowfullscreen="true" 
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
+
+            <div class="status-panel">
+                <button class="status-btn" onclick="mark(this, 'edu', 'OK')">✅ Jest Post</button>
+                <button class="status-btn" onclick="mark(this, 'edu', 'MISSING')">⚠️ Brak</button>
+                <button class="status-btn" onclick="mark(this, 'edu', 'ALERT')">🔴 Problem</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>TEB Liceum / Technikum</h2>
+            <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FTEBLiceumTechnikumGdansk&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId" 
+                    width="100%" 
+                    height="600" 
+                    scrolling="no" 
+                    frameborder="0" 
+                    allowfullscreen="true" 
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
+
+            <div class="status-panel">
+                <button class="status-btn" onclick="mark(this, 'schools', 'OK')">✅ Jest Post</button>
+                <button class="status-btn" onclick="mark(this, 'schools', 'MISSING')">⚠️ Brak</button>
+                <button class="status-btn" onclick="mark(this, 'schools', 'ALERT')">🔴 Problem</button>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="report-btn" onclick="copyReport()">📋 Generuj i Kopiuj Raport</button>
+
+    <script>
+        let reportData = {
+            edu: "Nie sprawdzono",
+            schools: "Nie sprawdzono"
+        };
+
+        function mark(btn, branch, status) {
+            // Reset stylów w danej sekcji
+            let siblings = btn.parentElement.children;
+            for (let s of siblings) {
+                s.classList.remove('selected-ok', 'selected-alert');
+            }
+
+            // Ustawienie statusu wizualnego
+            if (status === 'OK') btn.classList.add('selected-ok');
+            else btn.classList.add('selected-alert');
+
+            // Zapis danych
+            reportData[branch] = status;
+        }
+
+        function copyReport() {
+            const date = new Date().toLocaleDateString('pl-PL');
+            const mapStatus = {
+                'OK': '✅ Opublikowano',
+                'MISSING': '⚠️ BRAK PUBLIKACJI',
+                'ALERT': '🔴 WYMAGA REAKCJI',
+                'Nie sprawdzono': '❓ Nie sprawdzono'
+            };
+
+            const text = `RAPORT FB GDAŃSK (${date})\n` +
+                         `-----------------------------\n` +
+                         `1. TEB Edukacja: ${mapStatus[reportData.edu]}\n` +
+                         `2. TEB Szkoły:   ${mapStatus[reportData.schools]}`;
+
+            // Kopiowanie do schowka
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            alert("Raport skopiowany do schowka!\n\n" + text);
+        }
+    </script>
+
+</body>
+</html>
