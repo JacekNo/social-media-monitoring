@@ -3,197 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEB Gdańsk - Bezpieczny Podgląd</title>
+    <title>TEB Social Command Center</title>
     <style>
+        :root {
+            --teb-blue: #003399;
+            --teb-yellow: #FFCC00;
+            --bg-gray: #f0f2f5;
+            --text-main: #1c1e21;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5; /* Tło Facebookowe */
+            background-color: var(--bg-gray);
+            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
 
+        /* STICKY HEADER - Pasek nawigacji */
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #1c1e21;
+            background-color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 4px solid var(--teb-blue);
         }
 
-        .dashboard-grid {
+        .brand {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--teb-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-container {
+            flex-grow: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--teb-blue);
+        }
+
+        .stats {
+            font-size: 0.9rem;
+            color: #65676b;
+            font-weight: 500;
+        }
+
+        /* GRID - Siatka z wynikami */
+        .dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Dwie kolumny */
+            /* Responsywność: kolumny dopasowują się do ekranu (min 400px szerokości) */
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 20px;
-            max-width: 1100px;
+            padding: 20px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
-        /* Na mniejszych ekranach zrób jedną kolumnę */
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
+        /* KARTA MIASTA */
+        .city-card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            padding: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
             display: flex;
             flex-direction: column;
+        }
+
+        .city-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .city-header {
+            background: white;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        h2 {
+        .city-header h2 {
+            margin: 0;
             font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #003399; /* TEB Blue */
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: var(--teb-blue);
         }
 
-        /* Stylizacja ramki IFRAME */
-        iframe {
-            border: none;
-            overflow: hidden;
-            border-radius: 4px;
+        .links-group a {
+            font-size: 0.8rem;
+            text-decoration: none;
+            color: #65676b;
+            background: #e4e6eb;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin-left: 5px;
+            transition: background 0.2s;
         }
 
-        .status-panel {
-            margin-top: 15px;
-            width: 100%;
+        .links-group a:hover {
+            background: #d8dadf;
+            color: black;
+        }
+
+        /* STREFA FEEDÓW FB */
+        .feeds-container {
             display: flex;
-            justify-content: space-around;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
+            flex-direction: column;
+            background: #f0f2f5;
+            padding: 10px;
+            gap: 10px;
+            height: 100%;
         }
 
-        button.status-btn {
-            background: none;
-            border: 1px solid #ccc;
-            padding: 8px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: 0.2s;
-        }
-
-        button.status-btn:hover { background-color: #f0f0f0; }
-        
-        /* Aktywne stany przycisków */
-        .selected-ok { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
-        .selected-alert { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
-
-        .report-btn {
-            display: block;
-            margin: 30px auto;
-            padding: 15px 50px;
-            background-color: #003399;
-            color: white;
-            font-size: 1.1rem;
+        iframe {
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            /* Minimalna wysokość, żeby było widać chociaż 1 post */
+            height: 500px; 
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .report-btn:hover { background-color: #002266; }
+
+        /* Stopka */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.8rem;
+        }
 
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Monitoring Social Media - Gdańsk</h1>
+        <div class="brand">
+            <span>TEB MONITOR</span>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Szukaj miasta (np. Wrocław)..." autofocus>
+        </div>
+        <div class="stats" id="statsDisplay">Wczytano: 46 miast</div>
     </div>
 
-    <div class="dashboard-grid">
-        
-        <div class="card">
-            <h2>TEB Edukacja</h2>
-            <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FTEBEdukacjaGdansk&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId" 
-                    width="100%" 
-                    height="600" 
-                    scrolling="no" 
-                    frameborder="0" 
-                    allowfullscreen="true" 
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-            </iframe>
-
-            <div class="status-panel">
-                <button class="status-btn" onclick="mark(this, 'edu', 'OK')">✅ Jest Post</button>
-                <button class="status-btn" onclick="mark(this, 'edu', 'MISSING')">⚠️ Brak</button>
-                <button class="status-btn" onclick="mark(this, 'edu', 'ALERT')">🔴 Problem</button>
-            </div>
+    <div id="app" class="dashboard">
         </div>
 
-        <div class="card">
-            <h2>TEB Liceum / Technikum</h2>
-            <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FTEBLiceumTechnikumGdansk&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId" 
-                    width="100%" 
-                    height="600" 
-                    scrolling="no" 
-                    frameborder="0" 
-                    allowfullscreen="true" 
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-            </iframe>
-
-            <div class="status-panel">
-                <button class="status-btn" onclick="mark(this, 'schools', 'OK')">✅ Jest Post</button>
-                <button class="status-btn" onclick="mark(this, 'schools', 'MISSING')">⚠️ Brak</button>
-                <button class="status-btn" onclick="mark(this, 'schools', 'ALERT')">🔴 Problem</button>
-            </div>
-        </div>
-
+    <div class="footer">
+        Narzędzie wewnętrzne TEB Edukacja | Oparte o Facebook Page Plugin
     </div>
-
-    <button class="report-btn" onclick="copyReport()">📋 Generuj i Kopiuj Raport</button>
 
     <script>
-        let reportData = {
-            edu: "Nie sprawdzono",
-            schools: "Nie sprawdzono"
-        };
+        // --- 1. BAZA DANYCH (Pełna lista 46 miast) ---
+        const oddzialy = [
+            { miasto: "Bełchatów", slug: "Belchatow" },
+            { miasto: "Białystok", slug: "Bialystok" },
+            { miasto: "Bielsko-Biała", slug: "BielskoBiala" },
+            { miasto: "Bydgoszcz", slug: "Bydgoszcz" },
+            { miasto: "Częstochowa", slug: "Czestochowa" },
+            { miasto: "Gdańsk", slug: "Gdansk" },
+            { miasto: "Gdynia", slug: "Gdynia" },
+            { miasto: "Gliwice", slug: "Gliwice" },
+            { miasto: "Gniezno", slug: "Gniezno" },
+            { miasto: "Gorzów Wielkopolski", slug: "GorzowWielkopolski" },
+            { miasto: "Grudziądz", slug: "Grudziadz" },
+            { miasto: "Jastrzębie-Zdrój", slug: "JastrzebieZdroj" },
+            { miasto: "Jelenia Góra", slug: "JeleniaGora" },
+            { miasto: "Kalisz", slug: "Kalisz" },
+            { miasto: "Katowice", slug: "Katowice" },
+            { miasto: "Kielce", slug: "Kielce" },
+            { miasto: "Koszalin", slug: "Koszalin" },
+            { miasto: "Kraków", slug: "Krakow" },
+            { miasto: "Legnica", slug: "Legnica" },
+            { miasto: "Leszno", slug: "Leszno" },
+            { miasto: "Lubin", slug: "Lubin" },
+            { miasto: "Lublin", slug: "Lublin" },
+            { miasto: "Łódź", slug: "Lodz" },
+            { miasto: "Nowy Sącz", slug: "NowySacz" },
+            { miasto: "Olsztyn", slug: "Olsztyn" },
+            { miasto: "Opole", slug: "Opole" },
+            { miasto: "Ostrów Wielkopolski", slug: "OstrowWielkopolski" },
+            { miasto: "Piła", slug: "Pila" },
+            { miasto: "Piotrków Trybunalski", slug: "PiotrkowTrybunalski" },
+            { miasto: "Płock", slug: "Plock" },
+            { miasto: "Poznań", slug: "Poznan" },
+            { miasto: "Racibórz", slug: "Raciborz" },
+            { miasto: "Radom", slug: "Radom" },
+            { miasto: "Rybnik", slug: "Rybnik" },
+            { miasto: "Rzeszów", slug: "Rzeszow" },
+            { miasto: "Słupsk", slug: "Slupsk" },
+            { miasto: "Starogard Gdański", slug: "StarogardGdanski" },
+            { miasto: "Szczecin", slug: "Szczecin" },
+            { miasto: "Świdnica", slug: "Swidnica" },
+            { miasto: "Toruń", slug: "Torun" },
+            { miasto: "Tychy", slug: "Tychy" },
+            { miasto: "Wałbrzych", slug: "Walbrzych" },
+            { miasto: "Warszawa", slug: "Warszawa" },
+            { miasto: "Wodzisław Śląski", slug: "WodzislawSlaski" },
+            { miasto: "Wrocław", slug: "Wroclaw" },
+            { miasto: "Zamość", slug: "Zamosc" }
+        ];
 
-        function mark(btn, branch, status) {
-            // Reset stylów w danej sekcji
-            let siblings = btn.parentElement.children;
-            for (let s of siblings) {
-                s.classList.remove('selected-ok', 'selected-alert');
+        // --- 2. LOGIKA APLIKACJI ---
+
+        const appContainer = document.getElementById('app');
+        const searchInput = document.getElementById('searchInput');
+        const statsDisplay = document.getElementById('statsDisplay');
+
+        // Funkcja tworząca kod HTML ramki Facebooka
+        function createFbIframe(pageName) {
+            // Kodowanie URL (ważne!)
+            const encodedUrl = encodeURIComponent(`https://www.facebook.com/${pageName}`);
+            
+            // Parametry wtyczki
+            const src = `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=400&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
+
+            // Zwracamy iframe z atrybutem loading="lazy" (kluczowe dla wydajności)
+            return `
+                <iframe src="${src}" 
+                    width="100%" 
+                    height="500" 
+                    scrolling="no" 
+                    frameborder="0" 
+                    allowfullscreen="true" 
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    loading="lazy">
+                </iframe>
+            `;
+        }
+
+        // Główna funkcja renderująca
+        function render(filter = "") {
+            appContainer.innerHTML = ""; // Czyścimy widok
+            
+            // Filtrujemy listę miast
+            const filteredCities = oddzialy.filter(item => 
+                item.miasto.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            // Aktualizacja licznika
+            statsDisplay.innerText = filter === "" 
+                ? `Wszystkie miasta: ${filteredCities.length}` 
+                : `Wyniki wyszukiwania: ${filteredCities.length}`;
+
+            // Pętla po wynikach
+            filteredCities.forEach(city => {
+                const card = document.createElement('div');
+                card.className = 'city-card';
+
+                // Generowanie nazw fanpage'y na podstawie slugów
+                const eduPage = `TEBEdukacja${city.slug}`;
+                const schoolPage = `TEBLiceumTechnikum${city.slug}`;
+
+                card.innerHTML = `
+                    <div class="city-header">
+                        <h2>${city.miasto}</h2>
+                        <div class="links-group">
+                            <a href="https://facebook.com/${eduPage}" target="_blank" title="Otwórz w nowej karcie">Edu ↗</a>
+                            <a href="https://facebook.com/${schoolPage}" target="_blank" title="Otwórz w nowej karcie">Szkoły ↗</a>
+                        </div>
+                    </div>
+                    <div class="feeds-container">
+                        ${createFbIframe(eduPage)}
+                        
+                        ${createFbIframe(schoolPage)}
+                    </div>
+                `;
+
+                appContainer.appendChild(card);
+            });
+
+            // Jeśli nic nie znaleziono
+            if (filteredCities.length === 0) {
+                appContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">Nie znaleziono miasta o nazwie "${filter}"</div>`;
             }
-
-            // Ustawienie statusu wizualnego
-            if (status === 'OK') btn.classList.add('selected-ok');
-            else btn.classList.add('selected-alert');
-
-            // Zapis danych
-            reportData[branch] = status;
         }
 
-        function copyReport() {
-            const date = new Date().toLocaleDateString('pl-PL');
-            const mapStatus = {
-                'OK': '✅ Opublikowano',
-                'MISSING': '⚠️ BRAK PUBLIKACJI',
-                'ALERT': '🔴 WYMAGA REAKCJI',
-                'Nie sprawdzono': '❓ Nie sprawdzono'
-            };
+        // Nasłuchiwanie wpisywania w wyszukiwarkę (Debounce dla płynności)
+        let timeout = null;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                render(e.target.value);
+            }, 300); // Czeka 300ms po wpisaniu znaku zanim przerysuje
+        });
 
-            const text = `RAPORT FB GDAŃSK (${date})\n` +
-                         `-----------------------------\n` +
-                         `1. TEB Edukacja: ${mapStatus[reportData.edu]}\n` +
-                         `2. TEB Szkoły:   ${mapStatus[reportData.schools]}`;
+        // Start aplikacji (pokaż wszystko na początku)
+        render(""); 
 
-            // Kopiowanie do schowka
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-
-            alert("Raport skopiowany do schowka!\n\n" + text);
-        }
     </script>
-
 </body>
 </html>
