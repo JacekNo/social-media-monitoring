@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEB Social Monitor v4.0</title>
+    <title>TEB Social Monitor v4.1</title>
     <style>
         :root {
             --teb-blue: #003399;
             --teb-dark-blue: #002266;
-            --teb-yellow: #FFCC00;
-            --bg-gray: #eaHgf2f5;
+            --bg-gray: #f0f2f5;
             --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
             --transition: all 0.3s ease;
         }
@@ -20,7 +19,7 @@
             margin: 0;
             padding: 0;
             padding-bottom: 60px;
-            overflow-x: hidden; /* Zapobiega poziomemu przewijaniu */
+            overflow-x: hidden;
         }
 
         /* --- HEADER --- */
@@ -42,11 +41,9 @@
             font-size: 1.4rem;
             font-weight: 800;
             color: var(--teb-blue);
-            letter-spacing: -0.5px;
             white-space: nowrap;
         }
 
-        /* --- FILTRY (SEARCH + TYPE) --- */
         .filters-group {
             display: flex;
             gap: 15px;
@@ -72,10 +69,8 @@
         }
         input[type="text"]:focus {
             border-color: var(--teb-blue);
-            box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.1);
         }
 
-        /* Przyciski kategorii */
         .type-filters {
             display: flex;
             background: #f0f2f5;
@@ -94,16 +89,9 @@
             color: #65676b;
             transition: var(--transition);
         }
-
         .filter-btn:hover { background: rgba(0,0,0,0.05); }
+        .filter-btn.active { background: var(--teb-blue); color: white; }
 
-        .filter-btn.active {
-            background: var(--teb-blue);
-            color: white;
-            box-shadow: 0 2px 8px rgba(0, 51, 153, 0.3);
-        }
-
-        /* Info i Reset */
         .actions-right {
             margin-left: auto;
             display: flex;
@@ -117,22 +105,20 @@
         .reset-link {
             color: #d93025;
             cursor: pointer;
-            text-decoration: none;
             border-bottom: 1px dotted #d93025;
         }
 
-        /* --- GRID (PEŁNA SZEROKOŚĆ) --- */
+        /* --- DASHBOARD --- */
         .dashboard {
             display: grid;
-            /* Responsywne kafelki: im szerszy ekran, tym więcej kolumn */
-            grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+            /* Elastyczna siatka - karty dostosowują się do ekranu */
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             gap: 25px;
             padding: 25px;
-            width: 96%; /* Prawie cała szerokość */
+            width: 96%;
             margin: 0 auto;
         }
 
-        /* --- KARTA MIASTA --- */
         .city-card {
             background: white;
             border-radius: 12px;
@@ -142,12 +128,10 @@
             flex-direction: column;
             overflow: hidden;
             transition: var(--transition);
-            position: relative;
         }
 
         .city-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
 
-        /* Nagłówek Karty */
         .city-header {
             padding: 15px 20px;
             background: white;
@@ -156,7 +140,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .city-header h2 { margin: 0; font-size: 1.25rem; color: #1c1e21; }
 
         .header-links a {
@@ -168,11 +151,10 @@
             border-radius: 8px;
             margin-left: 5px;
             font-weight: 600;
-            transition: 0.2s;
         }
         .header-links a:hover { background: var(--teb-blue); color: white; }
 
-        /* Panel Statusu */
+        /* Status Bar */
         .status-bar {
             padding: 10px;
             background: #fafafa;
@@ -189,53 +171,49 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 0.85rem;
-            transition: 0.2s;
         }
-
         .btn-ok { background: #e4e6eb; color: #444; }
         .btn-alert { background: #e4e6eb; color: #444; }
-        
         .btn-ok:hover { background: #a8dadc; }
         .btn-alert:hover { background: #fad7da; }
 
-        /* Aktywne statusy */
+        /* Active Status */
         .city-card.status-ok { border: 2px solid #1877F2; }
         .city-card.status-ok .btn-ok { background: #1877F2; color: white; }
-        
         .city-card.status-alert { border: 2px solid #dc3545; }
         .city-card.status-alert .btn-alert { background: #dc3545; color: white; }
 
-        /* --- KONTENT (Feedy) --- */
+        /* --- FEEDY (Pełna szerokość + Centrowanie) --- */
         .feeds-wrapper {
             display: flex;
-            padding: 0;
-            height: 500px; /* Stała wysokość */
+            height: 500px;
+            background: white; /* Tło białe, żeby nie było widać marginesów */
         }
 
-        /* Pojedyncza kolumna feedu */
         .feed-col {
-            flex: 1; /* Domyślnie dzielą miejsce po równo */
+            flex: 1;
             border-right: 1px solid #eee;
-            position: relative;
-            background: white;
-            transition: var(--transition);
+            /* Centrowanie zawartości, jeśli FB jest węższy niż kolumna */
+            display: flex;
+            justify-content: center; 
+            overflow: hidden;
         }
         .feed-col:last-child { border-right: none; }
 
-        /* LOGIKA UKRYWANIA KOLUMN */
-        /* Jeśli wybrano tylko EDU, ukryj SZKOŁY */
+        /* Przełączanie trybów */
         .mode-edu .col-school { display: none; }
-        /* Jeśli wybrano tylko SZKOŁY, ukryj EDU */
         .mode-school .col-edu { display: none; }
 
         iframe {
+            /* Iframe bierze 100% wysokości i szerokości */
             width: 100%;
             height: 100%;
             border: none;
-            display: block;
+            /* Ale nie więcej niż 500px, żeby się nie rozciągał brzydko, bo FB tego nie wspiera */
+            max-width: 500px; 
         }
 
-        /* Stan "Zwinięty" (OK) */
+        /* Komunikat "Sprawdzone" */
         .city-card.status-ok .feeds-wrapper { display: none; }
         .checked-placeholder {
             display: none;
@@ -247,39 +225,22 @@
             background: #f8fbff;
         }
         .city-card.status-ok .checked-placeholder { display: block; }
-        
-        .refresh-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 5;
-            background: rgba(255,255,255,0.9);
-            border: 1px solid #ccc;
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            font-weight: bold;
-            display: none; /* Pokazujemy tylko na żądanie lub hover */
-        }
 
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="brand">TEB MONITOR v4</div>
+        <div class="brand">TEB MONITOR v4.1</div>
         
         <div class="filters-group">
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Szukaj miasta (np. Katowice)..." autofocus>
+                <input type="text" id="searchInput" placeholder="Szukaj miasta..." autofocus>
             </div>
-
             <div class="type-filters">
                 <button class="filter-btn active" onclick="changeCategory('ALL', this)">Wszystko</button>
                 <button class="filter-btn" onclick="changeCategory('EDU', this)">Edukacja</button>
-                <button class="filter-btn" onclick="changeCategory('SCHOOL', this)">Liceum/Technikum</button>
+                <button class="filter-btn" onclick="changeCategory('SCHOOL', this)">Szkoły</button>
             </div>
         </div>
 
@@ -292,7 +253,7 @@
     <div id="app" class="dashboard"></div>
 
     <script>
-        // --- 1. DANE (Pełna lista) ---
+        // --- BAZA DANYCH (Poprawiony Grudziądz + reszta wyjątków) ---
         const oddzialy = [
             { miasto: "Bełchatów", slug: "Belchatow" },
             { miasto: "Białystok", slug: "Bialystok" },
@@ -304,7 +265,10 @@
             { miasto: "Gliwice", slug: "Gliwice" },
             { miasto: "Gniezno", slug: "Gniezno" },
             { miasto: "Gorzów Wlkp.", slug: "GorzowWielkopolski", eduId: "tebedukacjagorzow", schoolId: "TEBLiceumTechnikumGorzowWlkp" },
+            
+            // GRUDZIĄDZ POPRAWIONY:
             { miasto: "Grudziądz", slug: "Grudziadz", eduId: "TEBGrudziadz" },
+            
             { miasto: "Jastrzębie-Zdrój", slug: "JastrzebieZdroj", eduId: "TEBJastrzebie", schoolId: "TEBLiceumTechnikumJastrzebie" },
             { miasto: "Jelenia Góra", slug: "JeleniaGora" },
             { miasto: "Kalisz", slug: "Kalisz" },
@@ -342,9 +306,9 @@
             { miasto: "Zamość", slug: "Zamosc" }
         ];
 
-        // --- 2. STAN (Local Storage + Filtry) ---
+        // --- STAN I LOGIKA ---
         let auditState = JSON.parse(localStorage.getItem('tebAuditState')) || {};
-        let activeCategory = 'ALL'; // ALL, EDU, SCHOOL
+        let activeCategory = 'ALL';
 
         function saveState() {
             localStorage.setItem('tebAuditState', JSON.stringify(auditState));
@@ -381,22 +345,18 @@
 
         function changeCategory(type, btn) {
             activeCategory = type;
-            
-            // UI Przycisków
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
-            // Przerysowanie
             render();
         }
 
-        // --- 3. RENDEROWANIE ---
+        // --- RENDEROWANIE ---
         const appContainer = document.getElementById('app');
         const searchInput = document.getElementById('searchInput');
 
-        // Funkcja generująca iframe z zabezpieczeniami (show_facepile=false)
         function getIframe(pageId) {
             const url = encodeURIComponent(`https://www.facebook.com/${pageId}`);
+            // width=500 to max jaki FB obsługuje. adapt_container_width=true pozwala mu się kurczyć.
             const src = `https://www.facebook.com/plugins/page.php?href=${url}&tabs=timeline&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
             return `<iframe src="${src}" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
         }
@@ -411,19 +371,15 @@
                 const card = document.createElement('div');
                 card.id = `card-${city.slug}`;
                 
-                // Ustalanie klas na podstawie wybranego filtra kategorii
-                // Dodajemy klasę "mode-edu" lub "mode-school", która steruje CSSem
                 let modeClass = "";
                 if(activeCategory === 'EDU') modeClass = "mode-edu";
                 if(activeCategory === 'SCHOOL') modeClass = "mode-school";
                 
                 card.className = `city-card ${modeClass}`;
 
-                // Status przy ładowaniu
                 if(auditState[city.slug] === 'OK') card.classList.add('status-ok');
                 if(auditState[city.slug] === 'ALERT') card.classList.add('status-alert');
 
-                // Linki ID
                 const eduId = city.eduId || `TEBEdukacja${city.slug}`;
                 const schoolId = city.schoolId || `TEBLiceumTechnikum${city.slug}`;
 
@@ -450,7 +406,6 @@
                         <div class="feed-col col-edu">
                             ${getIframe(eduId)}
                         </div>
-                        
                         <div class="feed-col col-school">
                             ${getIframe(schoolId)}
                         </div>
