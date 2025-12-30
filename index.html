@@ -3,260 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEB Social Auditor v3.0</title>
+    <title>TEB Social Monitor v4.0</title>
     <style>
         :root {
             --teb-blue: #003399;
+            --teb-dark-blue: #002266;
             --teb-yellow: #FFCC00;
-            --bg-gray: #f0f2f5;
-            --status-ok-bg: #e7f3ff;
-            --status-ok-border: #1877F2;
-            --status-alert-bg: #ffebeb;
-            --status-alert-border: #dc3545;
+            --bg-gray: #eaHgf2f5;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-gray);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 0;
-            padding-bottom: 50px;
+            padding-bottom: 60px;
+            overflow-x: hidden; /* Zapobiega poziomemu przewijaniu */
         }
 
-        /* --- HEADER (PASEK GÓRNY) --- */
+        /* --- HEADER --- */
         .header {
             background-color: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 1000;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 25px;
             border-bottom: 4px solid var(--teb-blue);
             flex-wrap: wrap;
         }
 
-        .brand { 
-            font-weight: bold; 
-            color: var(--teb-blue); 
-            font-size: 1.2rem;
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--teb-blue);
+            letter-spacing: -0.5px;
             white-space: nowrap;
         }
 
-        .search-container { 
-            flex-grow: 1; 
-            min-width: 200px;
-            max-width: 600px; 
+        /* --- FILTRY (SEARCH + TYPE) --- */
+        .filters-group {
+            display: flex;
+            gap: 15px;
+            flex-grow: 1;
+            align-items: center;
+            flex-wrap: wrap;
         }
-        
+
+        .search-container {
+            flex-grow: 1;
+            max-width: 400px;
+            min-width: 250px;
+        }
+
         input[type="text"] {
             width: 100%;
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            border-radius: 20px;
-            font-size: 1rem;
+            padding: 12px 20px;
+            border: 2px solid #e1e3e8;
+            border-radius: 30px;
+            font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.3s;
+            transition: var(--transition);
         }
-        input[type="text"]:focus { border-color: var(--teb-blue); }
+        input[type="text"]:focus {
+            border-color: var(--teb-blue);
+            box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.1);
+        }
 
-        .progress-info {
+        /* Przyciski kategorii */
+        .type-filters {
+            display: flex;
+            background: #f0f2f5;
+            padding: 4px;
+            border-radius: 30px;
+        }
+
+        .filter-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
             font-size: 0.9rem;
-            font-weight: bold;
-            color: #555;
-            text-align: right;
-            white-space: nowrap;
+            color: #65676b;
+            transition: var(--transition);
         }
 
-        .reset-btn {
-            font-size: 0.8rem;
+        .filter-btn:hover { background: rgba(0,0,0,0.05); }
+
+        .filter-btn.active {
+            background: var(--teb-blue);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 51, 153, 0.3);
+        }
+
+        /* Info i Reset */
+        .actions-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .reset-link {
             color: #d93025;
             cursor: pointer;
-            text-decoration: underline;
-            margin-left: 10px;
+            text-decoration: none;
+            border-bottom: 1px dotted #d93025;
         }
 
-        /* --- GRID (SIATKA KART) --- */
+        /* --- GRID (PEŁNA SZEROKOŚĆ) --- */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            max-width: 1800px;
+            /* Responsywne kafelki: im szerszy ekran, tym więcej kolumn */
+            grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+            gap: 25px;
+            padding: 25px;
+            width: 96%; /* Prawie cała szerokość */
             margin: 0 auto;
         }
 
         /* --- KARTA MIASTA --- */
         .city-card {
             background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            border: 1px solid #f0f2f5;
+            box-shadow: var(--card-shadow);
             display: flex;
             flex-direction: column;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        /* Stylizacja stanów (OK / ALERT) */
-        .city-card.status-ok {
-            border-color: var(--status-ok-border);
-            background-color: var(--status-ok-bg);
-        }
-        
-        /* Ukrywamy feedy, gdy status jest OK (oszczędność miejsca) */
-        .city-card.status-ok .feeds-wrapper { display: none; }
-        .city-card.status-ok .checked-msg { display: block; }
-
-        .city-card.status-alert {
-            border-color: var(--status-alert-border);
-            background-color: var(--status-alert-bg);
-        }
-
-        .city-header {
-            padding: 15px;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-
-        .city-header h2 { margin: 0; font-size: 1.1rem; color: #333; }
-        
-        .external-links a {
-            font-size: 0.8rem;
-            text-decoration: none;
-            color: #1877F2;
-            margin-left: 8px;
-            font-weight: 500;
-        }
-
-        /* --- PANEL PRZYCISKÓW --- */
-        .control-panel {
-            display: flex;
-            padding: 10px;
-            gap: 10px;
-            background: rgba(255,255,255,0.5);
-            border-bottom: 1px solid #eee;
-            justify-content: center;
-        }
-
-        .btn {
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: transform 0.1s, background 0.2s;
-        }
-        .btn:active { transform: scale(0.95); }
-
-        .btn-ok { background-color: #e4e6eb; color: #1c1e21; }
-        .btn-ok:hover { background-color: #a8dadc; }
-        
-        .btn-alert { background-color: #e4e6eb; color: #1c1e21; }
-        .btn-alert:hover { background-color: #f8d7da; color: #721c24; }
-
-        /* Kolory aktywnych przycisków */
-        .status-ok .btn-ok { background-color: #1877F2; color: white; }
-        .status-alert .btn-alert { background-color: #dc3545; color: white; }
-
-        /* --- RAMKI FACEBOOKA --- */
-        .feeds-wrapper {
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .fb-frame-container {
-            background: white;
-            border-radius: 4px;
             overflow: hidden;
+            transition: var(--transition);
             position: relative;
         }
 
+        .city-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+
+        /* Nagłówek Karty */
+        .city-header {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .city-header h2 { margin: 0; font-size: 1.25rem; color: #1c1e21; }
+
+        .header-links a {
+            font-size: 0.8rem;
+            color: var(--teb-blue);
+            text-decoration: none;
+            background: #eef3ff;
+            padding: 5px 10px;
+            border-radius: 8px;
+            margin-left: 5px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .header-links a:hover { background: var(--teb-blue); color: white; }
+
+        /* Panel Statusu */
+        .status-bar {
+            padding: 10px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-status {
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .btn-ok { background: #e4e6eb; color: #444; }
+        .btn-alert { background: #e4e6eb; color: #444; }
+        
+        .btn-ok:hover { background: #a8dadc; }
+        .btn-alert:hover { background: #fad7da; }
+
+        /* Aktywne statusy */
+        .city-card.status-ok { border: 2px solid #1877F2; }
+        .city-card.status-ok .btn-ok { background: #1877F2; color: white; }
+        
+        .city-card.status-alert { border: 2px solid #dc3545; }
+        .city-card.status-alert .btn-alert { background: #dc3545; color: white; }
+
+        /* --- KONTENT (Feedy) --- */
+        .feeds-wrapper {
+            display: flex;
+            padding: 0;
+            height: 500px; /* Stała wysokość */
+        }
+
+        /* Pojedyncza kolumna feedu */
+        .feed-col {
+            flex: 1; /* Domyślnie dzielą miejsce po równo */
+            border-right: 1px solid #eee;
+            position: relative;
+            background: white;
+            transition: var(--transition);
+        }
+        .feed-col:last-child { border-right: none; }
+
+        /* LOGIKA UKRYWANIA KOLUMN */
+        /* Jeśli wybrano tylko EDU, ukryj SZKOŁY */
+        .mode-edu .col-school { display: none; }
+        /* Jeśli wybrano tylko SZKOŁY, ukryj EDU */
+        .mode-school .col-edu { display: none; }
+
         iframe {
             width: 100%;
-            height: 500px;
+            height: 100%;
             border: none;
             display: block;
         }
 
-        .checked-msg {
+        /* Stan "Zwinięty" (OK) */
+        .city-card.status-ok .feeds-wrapper { display: none; }
+        .checked-placeholder {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             color: #1877F2;
             font-weight: bold;
             font-size: 1.1rem;
+            background: #f8fbff;
         }
-
+        .city-card.status-ok .checked-placeholder { display: block; }
+        
         .refresh-btn {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 10;
-            background: rgba(255,255,255,0.8);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            background: rgba(255,255,255,0.9);
             border: 1px solid #ccc;
-            font-size: 0.7rem;
-            padding: 2px 6px;
+            padding: 10px 20px;
+            border-radius: 30px;
             cursor: pointer;
-            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-weight: bold;
+            display: none; /* Pokazujemy tylko na żądanie lub hover */
         }
-        .refresh-btn:hover { background: white; }
 
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="brand">TEB AUDITOR</div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Szukaj miasta (np. Gorzów, Wrocław)..." autofocus>
+        <div class="brand">TEB MONITOR v4</div>
+        
+        <div class="filters-group">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Szukaj miasta (np. Katowice)..." autofocus>
+            </div>
+
+            <div class="type-filters">
+                <button class="filter-btn active" onclick="changeCategory('ALL', this)">Wszystko</button>
+                <button class="filter-btn" onclick="changeCategory('EDU', this)">Edukacja</button>
+                <button class="filter-btn" onclick="changeCategory('SCHOOL', this)">Liceum/Technikum</button>
+            </div>
         </div>
-        <div class="progress-info">
-            Sprawdzono: <span id="progressCount">0</span> / 46
-            <br>
-            <span class="reset-btn" onclick="resetAll()">Resetuj wszystko</span>
+
+        <div class="actions-right">
+            <span>Stan: <b id="progressCount">0</b> / 46</span>
+            <span class="reset-link" onclick="resetAll()">Reset</span>
         </div>
     </div>
 
     <div id="app" class="dashboard"></div>
 
     <script>
-        // --- 1. BAZA DANYCH (Pełna lista z wyjątkami z Twojej listy) ---
-        // eduId = ID Fanpage'a Edukacja
-        // schoolId = ID Fanpage'a Szkoły (Liceum/Technikum)
-        // Jeśli brak ID, system użyje domyślnego: TEBEdukacja[Slug]
-        
+        // --- 1. DANE (Pełna lista) ---
         const oddzialy = [
             { miasto: "Bełchatów", slug: "Belchatow" },
             { miasto: "Białystok", slug: "Bialystok" },
             { miasto: "Bielsko-Biała", slug: "BielskoBiala" },
             { miasto: "Bydgoszcz", slug: "Bydgoszcz" },
-            
-            // Częstochowa: krótki link
             { miasto: "Częstochowa", slug: "Czestochowa", eduId: "TEBCzestochowa" },
-            
             { miasto: "Gdańsk", slug: "Gdansk" },
             { miasto: "Gdynia", slug: "Gdynia" },
             { miasto: "Gliwice", slug: "Gliwice" },
             { miasto: "Gniezno", slug: "Gniezno" },
-            
-            // Gorzów: małe litery w edu, Wlkp w szkołach
             { miasto: "Gorzów Wlkp.", slug: "GorzowWielkopolski", eduId: "tebedukacjagorzow", schoolId: "TEBLiceumTechnikumGorzowWlkp" },
-            
-            // Grudziądz: standard, ale z listy
-            { miasto: "Grudziądz", slug: "Grudziadz", eduId: "TEBGrudziadz" },
-            
-            // Jastrzębie: specyficzne nazwy
+            { miasto: "Grudziądz", slug: "Grudziadz", eduId: "TEBEdukacjaGrudziadz" },
             { miasto: "Jastrzębie-Zdrój", slug: "JastrzebieZdroj", eduId: "TEBJastrzebie", schoolId: "TEBLiceumTechnikumJastrzebie" },
-            
             { miasto: "Jelenia Góra", slug: "JeleniaGora" },
             { miasto: "Kalisz", slug: "Kalisz" },
             { miasto: "Katowice", slug: "Katowice" },
@@ -264,70 +313,38 @@
             { miasto: "Koszalin", slug: "Koszalin" },
             { miasto: "Kraków", slug: "Krakow" },
             { miasto: "Legnica", slug: "Legnica" },
-            
-            // Leszno: krótki link edu
             { miasto: "Leszno", slug: "Leszno", eduId: "TEBLeszno" },
-            
-            // Lubin: małe litery + Technikum
             { miasto: "Lubin", slug: "Lubin", eduId: "teblubin", schoolId: "TEBTechnikumLubin" },
-            
-            // Lublin: małe litery
             { miasto: "Lublin", slug: "Lublin", eduId: "teblublin" },
-            
             { miasto: "Łódź", slug: "Lodz" },
-            
-            // Nowy Sącz: małe litery
             { miasto: "Nowy Sącz", slug: "NowySacz", eduId: "tebnowysacz" },
-            
             { miasto: "Olsztyn", slug: "Olsztyn" },
-            
-            // Opole: krótki link
             { miasto: "Opole", slug: "Opole", eduId: "TEBOpole" },
-            
-            // Ostrów: krótki edu, długi szkolny z Wlkp
             { miasto: "Ostrów Wlkp.", slug: "OstrowWielkopolski", eduId: "TEBOstrowWlkp", schoolId: "TEBLiceumTechnikumOstrowWlkp" },
-            
             { miasto: "Piła", slug: "Pila" },
-            
-            // Piotrków: bez Trybunalski
             { miasto: "Piotrków Tryb.", slug: "PiotrkowTrybunalski", eduId: "TEBEdukacjaPiotrkow", schoolId: "TEBLiceumTechnikumPiotrkow" },
-            
-            // Płock: krótki link
             { miasto: "Płock", slug: "Plock", eduId: "TEBPlock" },
-            
             { miasto: "Poznań", slug: "Poznan" },
             { miasto: "Racibórz", slug: "Raciborz" },
             { miasto: "Radom", slug: "Radom" },
             { miasto: "Rybnik", slug: "Rybnik" },
             { miasto: "Rzeszów", slug: "Rzeszow" },
             { miasto: "Słupsk", slug: "Slupsk" },
-            
-            // Starogard: krótki link
             { miasto: "Starogard Gd.", slug: "StarogardGdanski", eduId: "TEBEdukacjaStarogard" },
-            { miasto: "Starogard Gd.", slug: "StarogardGdanski", eduId: "TEBLiceumTechnikumStarogard" },
-            
             { miasto: "Szczecin", slug: "Szczecin" },
-            
-            // Świdnica: specyficzny link szkolny
             { miasto: "Świdnica", slug: "Swidnica", schoolId: "TEBLiceumSwidnica" },
-            
             { miasto: "Toruń", slug: "Torun" },
-            
-            // Tychy: krótki link
             { miasto: "Tychy", slug: "Tychy", eduId: "TEBTychy" },
-            
             { miasto: "Wałbrzych", slug: "Walbrzych" },
             { miasto: "Warszawa", slug: "Warszawa" },
-            
-            // Wodzisław: bez Śląski
             { miasto: "Wodzisław Śl.", slug: "WodzislawSlaski", eduId: "TEBEdukacjaWodzislaw" },
-            
             { miasto: "Wrocław", slug: "Wroclaw" },
             { miasto: "Zamość", slug: "Zamosc" }
         ];
 
-        // --- 2. ZARZĄDZANIE STANEM (LOCAL STORAGE) ---
+        // --- 2. STAN (Local Storage + Filtry) ---
         let auditState = JSON.parse(localStorage.getItem('tebAuditState')) || {};
+        let activeCategory = 'ALL'; // ALL, EDU, SCHOOL
 
         function saveState() {
             localStorage.setItem('tebAuditState', JSON.stringify(auditState));
@@ -335,116 +352,117 @@
         }
 
         function updateProgress() {
-            const count = Object.keys(auditState).length;
-            document.getElementById('progressCount').innerText = count;
+            document.getElementById('progressCount').innerText = Object.keys(auditState).length;
         }
 
         function resetAll() {
-            if(confirm("Czy na pewno chcesz zresetować cały postęp? Wszystkie miasta wrócą do stanu 'Nie sprawdzone'.")) {
+            if(confirm("Zresetować wszystko?")) {
                 auditState = {};
                 saveState();
-                render(document.getElementById('searchInput').value);
+                render();
             }
         }
 
         function setStatus(slug, status) {
             if (auditState[slug] === status) {
-                delete auditState[slug]; // Odznacz jeśli kliknięto to samo
+                delete auditState[slug];
             } else {
                 auditState[slug] = status;
             }
             saveState();
             
-            // Odśwież widok konkretnej karty
             const card = document.getElementById(`card-${slug}`);
-            if(card) updateCardVisuals(card, slug);
+            if(card) {
+                card.classList.remove('status-ok', 'status-alert');
+                if (auditState[slug] === 'OK') card.classList.add('status-ok');
+                if (auditState[slug] === 'ALERT') card.classList.add('status-alert');
+            }
         }
 
-        function updateCardVisuals(card, slug) {
-            card.classList.remove('status-ok', 'status-alert');
-            const status = auditState[slug];
-            if (status === 'OK') card.classList.add('status-ok');
-            if (status === 'ALERT') card.classList.add('status-alert');
-        }
-
-        // --- 3. GENEROWANIE RAMEK FB ---
-        function createFbIframe(pageName) {
-            const encodedUrl = encodeURIComponent(`https://www.facebook.com/${pageName}`);
+        function changeCategory(type, btn) {
+            activeCategory = type;
             
-            // show_facepile=false: Kluczowe, żeby działało przy zalogowaniu
-            const src = `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=400&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
+            // UI Przycisków
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-            return `
-                <div class="fb-frame-container">
-                    <button class="refresh-btn" onclick="this.parentElement.querySelector('iframe').src += ''">🔄 Odśwież</button>
-                    <iframe src="${src}" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
-                </div>
-            `;
+            // Przerysowanie
+            render();
         }
 
-        // --- 4. RENDEROWANIE WIDOKU ---
+        // --- 3. RENDEROWANIE ---
         const appContainer = document.getElementById('app');
         const searchInput = document.getElementById('searchInput');
 
-        function render(filter = "") {
+        // Funkcja generująca iframe z zabezpieczeniami (show_facepile=false)
+        function getIframe(pageId) {
+            const url = encodeURIComponent(`https://www.facebook.com/${pageId}`);
+            const src = `https://www.facebook.com/plugins/page.php?href=${url}&tabs=timeline&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
+            return `<iframe src="${src}" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        }
+
+        function render() {
+            const filterText = searchInput.value.toLowerCase();
             appContainer.innerHTML = "";
-            
-            const filtered = oddzialy.filter(item => 
-                item.miasto.toLowerCase().includes(filter.toLowerCase())
-            );
+
+            const filtered = oddzialy.filter(item => item.miasto.toLowerCase().includes(filterText));
 
             filtered.forEach(city => {
                 const card = document.createElement('div');
                 card.id = `card-${city.slug}`;
-                card.className = 'city-card';
                 
-                // Sprawdź stan przy ładowaniu
-                const currentStatus = auditState[city.slug];
-                if(currentStatus === 'OK') card.classList.add('status-ok');
-                if(currentStatus === 'ALERT') card.classList.add('status-alert');
+                // Ustalanie klas na podstawie wybranego filtra kategorii
+                // Dodajemy klasę "mode-edu" lub "mode-school", która steruje CSSem
+                let modeClass = "";
+                if(activeCategory === 'EDU') modeClass = "mode-edu";
+                if(activeCategory === 'SCHOOL') modeClass = "mode-school";
+                
+                card.className = `city-card ${modeClass}`;
 
-                // Ustalanie linków (Wyjątki vs Standard)
-                const eduPage = city.eduId ? city.eduId : `TEBEdukacja${city.slug}`;
-                const schoolPage = city.schoolId ? city.schoolId : `TEBLiceumTechnikum${city.slug}`;
+                // Status przy ładowaniu
+                if(auditState[city.slug] === 'OK') card.classList.add('status-ok');
+                if(auditState[city.slug] === 'ALERT') card.classList.add('status-alert');
+
+                // Linki ID
+                const eduId = city.eduId || `TEBEdukacja${city.slug}`;
+                const schoolId = city.schoolId || `TEBLiceumTechnikum${city.slug}`;
 
                 card.innerHTML = `
                     <div class="city-header">
                         <h2>${city.miasto}</h2>
-                        <div class="external-links">
-                            <a href="https://fb.com/${eduPage}" target="_blank">Edu ↗</a>
-                            <a href="https://fb.com/${schoolPage}" target="_blank">Szkoły ↗</a>
+                        <div class="header-links">
+                            <a href="https://fb.com/${eduId}" target="_blank">Edu ↗</a>
+                            <a href="https://fb.com/${schoolId}" target="_blank">Szkoły ↗</a>
                         </div>
                     </div>
-                    
-                    <div class="control-panel">
-                        <button class="btn btn-ok" onclick="setStatus('${city.slug}', 'OK')">✅ OK (Zwiń)</button>
-                        <button class="btn btn-alert" onclick="setStatus('${city.slug}', 'ALERT')">🔴 ALERT</button>
+
+                    <div class="status-bar">
+                        <button class="btn-status btn-ok" onclick="setStatus('${city.slug}', 'OK')">✅ OK (Zwiń)</button>
+                        <button class="btn-status btn-alert" onclick="setStatus('${city.slug}', 'ALERT')">🔴 ALERT</button>
                     </div>
 
-                    <div class="checked-msg">
-                        ✅ Oddział sprawdzony<br>
-                        <small style="cursor:pointer; color:#666; text-decoration:underline" onclick="setStatus('${city.slug}', 'OK')">Kliknij, aby rozwinąć ponownie</small>
+                    <div class="checked-placeholder" onclick="setStatus('${city.slug}', 'OK')" style="cursor:pointer">
+                        ✅ Sprawdzone
+                        <div style="font-size:0.8em; color:#999; margin-top:5px">Kliknij, aby rozwinąć</div>
                     </div>
 
                     <div class="feeds-wrapper">
-                        ${createFbIframe(eduPage)}
-                        ${createFbIframe(schoolPage)}
+                        <div class="feed-col col-edu">
+                            ${getIframe(eduId)}
+                        </div>
+                        
+                        <div class="feed-col col-school">
+                            ${getIframe(schoolId)}
+                        </div>
                     </div>
                 `;
                 appContainer.appendChild(card);
             });
-            
-            if(filtered.length === 0) {
-                appContainer.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#777">Nie znaleziono miasta.</div>';
-            }
         }
 
-        // --- 5. INITIALIZACJA ---
-        searchInput.addEventListener('input', (e) => render(e.target.value));
-        
-        // Start aplikacji
+        searchInput.addEventListener('input', render);
         updateProgress();
-        render("");
+        render();
 
     </script>
 </body>
