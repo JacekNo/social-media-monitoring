@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEB Social Monitor v4.1</title>
+    <title>TEB Social Monitor v5.0 Wide</title>
     <style>
         :root {
             --teb-blue: #003399;
@@ -108,13 +108,14 @@
             border-bottom: 1px dotted #d93025;
         }
 
-        /* --- DASHBOARD --- */
+        /* --- DASHBOARD (ZMIANA GŁÓWNA) --- */
         .dashboard {
             display: grid;
-            /* Elastyczna siatka - karty dostosowują się do ekranu */
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-            gap: 25px;
-            padding: 25px;
+            /* ZMIANA: Zwiększono minmax z 500px na 850px. 
+               Dzięki temu kafelek jest szeroki i mieści 2 ramki obok siebie bez ścisku. */
+            grid-template-columns: repeat(auto-fill, minmax(850px, 1fr));
+            gap: 30px;
+            padding: 30px;
             width: 96%;
             margin: 0 auto;
         }
@@ -122,7 +123,7 @@
         .city-card {
             background: white;
             border-radius: 12px;
-            border: 1px solid #f0f2f5;
+            border: 1px solid #e5e5e5; /* Delikatniejsza ramka */
             box-shadow: var(--card-shadow);
             display: flex;
             flex-direction: column;
@@ -130,47 +131,47 @@
             transition: var(--transition);
         }
 
-        .city-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .city-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
 
         .city-header {
-            padding: 15px 20px;
+            padding: 15px 25px;
             background: white;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f0f0f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .city-header h2 { margin: 0; font-size: 1.25rem; color: #1c1e21; }
+        .city-header h2 { margin: 0; font-size: 1.4rem; color: #1c1e21; }
 
         .header-links a {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--teb-blue);
             text-decoration: none;
             background: #eef3ff;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             margin-left: 5px;
-            font-weight: 600;
+            font-weight: 700;
         }
         .header-links a:hover { background: var(--teb-blue); color: white; }
 
         /* Status Bar */
         .status-bar {
-            padding: 10px;
-            background: #fafafa;
-            border-bottom: 1px solid #eee;
+            padding: 12px;
+            background: #fdfdfd;
+            border-bottom: 1px solid #f0f0f0;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .btn-status {
             border: none;
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
         .btn-ok { background: #e4e6eb; color: #444; }
         .btn-alert { background: #e4e6eb; color: #444; }
@@ -183,20 +184,21 @@
         .city-card.status-alert { border: 2px solid #dc3545; }
         .city-card.status-alert .btn-alert { background: #dc3545; color: white; }
 
-        /* --- FEEDY (Pełna szerokość + Centrowanie) --- */
+        /* --- FEEDY (Pełna szerokość + Flex) --- */
         .feeds-wrapper {
             display: flex;
-            height: 500px;
-            background: white; /* Tło białe, żeby nie było widać marginesów */
+            height: 600px; /* Zwiększona wysokość dla lepszego podglądu */
+            background: white;
         }
 
         .feed-col {
-            flex: 1;
+            flex: 1; /* Dzielą się miejscem po równo */
             border-right: 1px solid #eee;
-            /* Centrowanie zawartości, jeśli FB jest węższy niż kolumna */
             display: flex;
             justify-content: center; 
             overflow: hidden;
+            /* Zabezpieczenie: jeśli ekran jest bardzo mały, niech się nie ściskają poniżej 300px */
+            min-width: 300px; 
         }
         .feed-col:last-child { border-right: none; }
 
@@ -205,12 +207,16 @@
         .mode-school .col-edu { display: none; }
 
         iframe {
-            /* Iframe bierze 100% wysokości i szerokości */
             width: 100%;
             height: 100%;
             border: none;
-            /* Ale nie więcej niż 500px, żeby się nie rozciągał brzydko, bo FB tego nie wspiera */
             max-width: 500px; 
+        }
+
+        /* Responsywność dla bardzo małych ekranów (np. telefon) - ułóż pionowo */
+        @media (max-width: 700px) {
+            .feeds-wrapper { flex-direction: column; height: auto; }
+            .feed-col { border-right: none; border-bottom: 1px solid #eee; height: 500px; }
         }
 
         /* Komunikat "Sprawdzone" */
@@ -218,10 +224,10 @@
         .checked-placeholder {
             display: none;
             text-align: center;
-            padding: 30px;
+            padding: 40px;
             color: #1877F2;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             background: #f8fbff;
         }
         .city-card.status-ok .checked-placeholder { display: block; }
@@ -231,7 +237,7 @@
 <body>
 
     <div class="header">
-        <div class="brand">TEB MONITOR v4.1</div>
+        <div class="brand">TEB MONITOR v5.0</div>
         
         <div class="filters-group">
             <div class="search-container">
@@ -253,7 +259,7 @@
     <div id="app" class="dashboard"></div>
 
     <script>
-        // --- BAZA DANYCH (Poprawiony Grudziądz + reszta wyjątków) ---
+        // --- BAZA DANYCH ---
         const oddzialy = [
             { miasto: "Bełchatów", slug: "Belchatow" },
             { miasto: "Białystok", slug: "Bialystok" },
@@ -265,10 +271,7 @@
             { miasto: "Gliwice", slug: "Gliwice" },
             { miasto: "Gniezno", slug: "Gniezno" },
             { miasto: "Gorzów Wlkp.", slug: "GorzowWielkopolski", eduId: "tebedukacjagorzow", schoolId: "TEBLiceumTechnikumGorzowWlkp" },
-            
-            // GRUDZIĄDZ POPRAWIONY:
             { miasto: "Grudziądz", slug: "Grudziadz", eduId: "TEBGrudziadz" },
-            
             { miasto: "Jastrzębie-Zdrój", slug: "JastrzebieZdroj", eduId: "TEBJastrzebie", schoolId: "TEBLiceumTechnikumJastrzebie" },
             { miasto: "Jelenia Góra", slug: "JeleniaGora" },
             { miasto: "Kalisz", slug: "Kalisz" },
@@ -356,8 +359,8 @@
 
         function getIframe(pageId) {
             const url = encodeURIComponent(`https://www.facebook.com/${pageId}`);
-            // width=500 to max jaki FB obsługuje. adapt_container_width=true pozwala mu się kurczyć.
-            const src = `https://www.facebook.com/plugins/page.php?href=${url}&tabs=timeline&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
+            // Ustawiamy szerokość na 500 (max) i adapt=true
+            const src = `https://www.facebook.com/plugins/page.php?href=${url}&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false&appId`;
             return `<iframe src="${src}" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
         }
 
